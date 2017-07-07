@@ -18,6 +18,7 @@ highlighted = [] # to hold Squares too tho
 guarded = [] # a list of all squares guarded by opponent at a given moment
 selected = False # is a piece selected
 selected_piece = None # which piece is selected
+white_turn = True #keep track of whose turn it is
 
 light_color = (200,200,200)
 dark_color = (100,100,100,)
@@ -224,6 +225,14 @@ def draw():
 
 # functions RE chess rules --------------------------------------
 
+def your_turn(piece): # is it your turn?
+    if white_turn and piece.color == 'white':
+        return True
+    elif not white_turn and piece.color == 'black':
+        return True
+    else:
+        return False
+
 def moving_to_own_square(piece, x, y): # trying to move a piece nowhere?
     if piece.x == x and piece.y == y:
         return True
@@ -352,7 +361,7 @@ def guarded(piece): # returns list of squares guarded by opponent
     a = list(set(a)) # remove duplicates
     return a
 
-# if king, compare guarded squares to dest AND path (for castling)
+# if king, compare guarded squares to dest and path
 def moving_into_check(piece, x, y):
     mic = False
     if piece.name == 'King':
@@ -380,8 +389,12 @@ def can_castle(piece, x, y): # UNFINISHED
                     # then cc = True
     return cc
 
-def is_legal(piece, x, y): # return true if a move is legal (except check)
+def is_legal(piece, x, y): # return true if a move is legal
     #given a piece and its destination.
+
+    yt = your_turn(piece)
+    if not yt:
+        return False
 
     motb = moving_off_the_board(x, y)
     if motb:
@@ -441,10 +454,10 @@ while 1:
                     if square.rect.collidepoint(pygame.mouse.get_pos()):
                         if is_legal(selected_piece, x, y):
 
-                            # capturing?
+                            # capturing
                             for piece in pieces:
                                 if piece.x == x and piece.y == y:
-                                    piece.x = 666 # that piece goes to hell
+                                    piece.x = 666 # piece goes to hell
                                     piece.y = 666
 
                             # move the piece
@@ -457,8 +470,12 @@ while 1:
                                 or selected_piece.name == 'King'):
                                 selected_piece.moved = True
 
+                            # end the 'turn'
+                            white_turn = not white_turn
+
                     selected = False
                     highlighted = []
+
             else:
                 highlighted = []
                 for piece in pieces:
